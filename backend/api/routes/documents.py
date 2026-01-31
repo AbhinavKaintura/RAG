@@ -68,13 +68,10 @@ async def index_documents(request: IndexRequest):
     """
     
     # Use request params or fall back to config
-    chunk_size = config.chunk_size
-    chunk_overlap = config.chunk_overlap
-    embedding_model = config.embedding_model
 
-    # chunk_size = request.chunk_size or config.chunk_size
-    # chunk_overlap = request.chunk_overlap or config.chunk_overlap
-    # embedding_model = request.embedding_model or config.embedding_model
+    chunk_size = request.chunk_size or config.chunk_size
+    chunk_overlap = request.chunk_overlap or config.chunk_overlap
+    embedding_model = request.embedding_model or config.embedding_model
 
     
     if not config.validate_embedding_model(embedding_model):
