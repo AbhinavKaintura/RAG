@@ -52,7 +52,7 @@ async def stream_chat(request: ChatRequest, vs = Depends(get_vectorstore)):
     rag_chain = build_rag_chain(retriever, llm_model=llm_model, temperature=temperature)
     
     async def event_generator() -> AsyncGenerator[str, None]:
-        """Generate SSE events"""
+        """Generate SSE events..."""
         try:
             # Get retrieved documents first
             raw_docs = retriever.invoke(request.query)

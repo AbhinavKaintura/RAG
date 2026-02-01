@@ -1,7 +1,7 @@
 /* app/globals.css - Professional Design System */
 
-@import 'tailwindcss/preflight';
-@tailwind utilities;
+@tailwind base;
+@tailwind components;
 @tailwind utilities;
 
 @layer base {
