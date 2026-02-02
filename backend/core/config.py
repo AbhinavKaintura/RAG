@@ -102,7 +102,7 @@ class AppConfig:
         # RAG parameters (user-configurable)
         self.chunk_size = int(os.getenv("CHUNK_SIZE", "800"))
         self.chunk_overlap = int(os.getenv("CHUNK_OVERLAP", "100"))
-        self.top_k = int(os.getenv("TOP_K", "6"))
+        self.top_k = int(os.getenv("TOP_K", "4"))
         self.fetch_k = int(os.getenv("FETCH_K", "30"))
         self.temperature = float(os.getenv("TEMPERATURE", "0.3"))
         self.use_mmr = os.getenv("USE_MMR", "true").lower() == "true"

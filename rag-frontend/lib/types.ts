@@ -13,6 +13,7 @@ export interface Citation {
   doc_id: string
   name: string
   page: number
+  paragraph_num: number
   span_start: number
   span_end: number
   chunk_preview: string

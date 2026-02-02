@@ -10,6 +10,7 @@ class Citation(BaseModel):
     doc_id: str
     name: str
     page: int
+    paragraph_num: int
     span_start: int
     span_end: int
     chunk_preview: str

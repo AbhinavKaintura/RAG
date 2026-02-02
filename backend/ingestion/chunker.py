@@ -25,6 +25,21 @@ def make_page_chunks(manifest: Dict, *, chunk_size: int = 1000, chunk_overlap: i
         text = payload.get("text", "")
         if not text:
             continue
+        
+        # Build paragraph boundaries - track start positions of each paragraph
+        # Split by newlines to identify paragraph breaks
+        paragraph_boundaries = []
+        current_pos = 0
+        lines = text.split('\n')
+        
+        for line in lines:
+            if line.strip():  # Non-empty line starts a paragraph
+                paragraph_boundaries.append(current_pos)
+            current_pos += len(line) + 1  # +1 for the newline character
+        
+        if not paragraph_boundaries:
+            paragraph_boundaries = [0]
+        
         chunks = splitter.split_text(text)
         # Recompute spans within page text
         cursor = 0
@@ -40,11 +55,22 @@ def make_page_chunks(manifest: Dict, *, chunk_size: int = 1000, chunk_overlap: i
             start = rel
             end = rel + len(ch)
             cursor = end
+            
+            # Determine which paragraph this chunk starts in
+            # Find the last paragraph boundary that is <= chunk start position
+            paragraph_num = 1
+            for i, boundary in enumerate(paragraph_boundaries, start=1):
+                if boundary <= start:
+                    paragraph_num = i
+                else:
+                    break
+            
             metadata = {
                 "doc_id": manifest["doc_id"],
                 "source_path": manifest["source_path"],
                 "name": manifest["name"],
                 "page": page_no,
+                "paragraph_num": paragraph_num,
                 "span_start": start,
                 "span_end": end,
             }

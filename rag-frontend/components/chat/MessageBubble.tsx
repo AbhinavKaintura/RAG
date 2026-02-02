@@ -77,7 +77,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               >
                 <FileText className="w-3 h-3" />
                 <span>{citation.name}</span>
-                <span className="opacity-75">p.{citation.page}</span>
+                <span className="opacity-75">p.{citation.page}, ¶{citation.paragraph_num}</span>
               </button>
             ))}
           </div>

@@ -1,9 +1,12 @@
 # PDF upload/indexing endpoints
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
+from fastapi.responses import FileResponse
 from typing import List, Optional
 import json
 from pathlib import Path
+import tempfile
+import os
 
 from api.schemas.requests import IndexRequest
 from api.schemas.responses import DocumentInfo, IndexStatus
@@ -12,6 +15,7 @@ from core.logging import get_logger
 from ingestion.pdf_loader import load_pdf_build_page_index
 from ingestion.chunker import make_page_chunks
 from ingestion.embed_store import build_faiss, load_faiss
+from highlight.annotator import annotate_pdf
 
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
 logger = get_logger()
@@ -186,3 +190,59 @@ async def index_status():
             "indexed": False,
             "message": f"Index corrupted: {str(e)}"
         }
+
+
+@router.post("/highlight")
+async def generate_highlighted_pdf(
+    doc_id: str = Form(...),
+    page: int = Form(...),
+    span_start: int = Form(...),
+    span_end: int = Form(...)
+):
+    """Generate a highlighted PDF for a specific citation"""
+    
+    try:
+        # Find document manifest
+        doc_dir = config.artifacts_dir / doc_id
+        if not doc_dir.exists():
+            raise HTTPException(404, f"Document not found: {doc_id}")
+        
+        manifest_path = doc_dir / 'manifest.json'
+        with open(manifest_path, 'r') as f:
+            manifest = json.load(f)
+        
+        source_path = manifest['source_path']
+        page_index_path = manifest['page_index_path']
+        
+        if not Path(source_path).exists():
+            raise HTTPException(404, f"Source PDF not found: {source_path}")
+        
+        # Create highlight specification
+        highlights = [{
+            'page': page,
+            'span_start': span_start,
+            'span_end': span_end
+        }]
+        
+        # Generate highlighted PDF in temp directory
+        temp_dir = Path(tempfile.gettempdir()) / 'rag_highlights'
+        temp_dir.mkdir(exist_ok=True)
+        
+        output_filename = f"{doc_id}_p{page}_highlighted.pdf"
+        output_path = temp_dir / output_filename
+        
+        # Annotate PDF
+        annotate_pdf(source_path, page_index_path, highlights, str(output_path))
+        
+        logger.info(f"Generated highlighted PDF: {output_path}")
+        
+        # Return the file
+        return FileResponse(
+            path=str(output_path),
+            media_type='application/pdf',
+            filename=output_filename
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to generate highlighted PDF: {e}")
+        raise HTTPException(500, f"Failed to generate highlighted PDF: {str(e)}")

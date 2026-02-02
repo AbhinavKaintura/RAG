@@ -16,7 +16,7 @@ def _format_docs(docs: List) -> str:
     
     for d in docs:
         meta = getattr(d, 'metadata', {}) or {}
-        key = (meta.get('name'), meta.get('page'))
+        key = (meta.get('name'), meta.get('page'), meta.get('paragraph_num'))
         
         if key in seen:
             continue
@@ -27,7 +27,8 @@ def _format_docs(docs: List) -> str:
         if len(snippet) > 600:
             snippet = snippet[:600] + '…'
         
-        lines.append(f"[{meta.get('name')} p.{meta.get('page')}] {snippet}")
+        para_num = meta.get('paragraph_num', 1)
+        lines.append(f"[{meta.get('name')} p.{meta.get('page')}, ¶{para_num}] {snippet}")
     
     return "\n\n".join(lines)
 
@@ -78,6 +79,7 @@ def postprocess_citations(raw_docs: List) -> List[Dict]:
             "name": m.get("name"),
             "source_path": m.get("source_path"),
             "page": m.get("page"),
+            "paragraph_num": m.get("paragraph_num", 1),
             "span_start": m.get("span_start"),
             "span_end": m.get("span_end"),
             "chunk_preview": (d.page_content or '')[:200],
