@@ -13,8 +13,8 @@ export default function ChatPage() {
   const { setSettings, setAvailableModels, setDocuments, setIsIndexed } = useChatStore()
 
   useEffect(() => {
-    // Check disclaimer acceptance
-    const hasAccepted = localStorage.getItem('disclaimer-accepted')
+    // Check disclaimer acceptance (session-based, not permanent)
+    const hasAccepted = sessionStorage.getItem('disclaimer-accepted')
     if (hasAccepted !== 'true') {
       router.push('/')
       return

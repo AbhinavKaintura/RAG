@@ -26,19 +26,19 @@ def make_page_chunks(manifest: Dict, *, chunk_size: int = 1000, chunk_overlap: i
         if not text:
             continue
         
-        # Build paragraph boundaries - track start positions of each paragraph
-        # Split by newlines to identify paragraph breaks
-        paragraph_boundaries = []
-        current_pos = 0
-        lines = text.split('\n')
+        # Build paragraph boundaries - detect by double newlines or empty lines
+        # This better identifies actual paragraph breaks vs line wrapping
+        paragraph_boundaries = [0]  # First paragraph starts at position 0
         
-        for line in lines:
-            if line.strip():  # Non-empty line starts a paragraph
-                paragraph_boundaries.append(current_pos)
-            current_pos += len(line) + 1  # +1 for the newline character
-        
-        if not paragraph_boundaries:
-            paragraph_boundaries = [0]
+        # Split by double newlines to find paragraph breaks
+        # Also handle single newline followed by significant spacing
+        import re
+        # Find positions of paragraph breaks (double newlines or newline + multiple spaces)
+        for match in re.finditer(r'\n\s*\n', text):
+            # Paragraph starts after the break
+            para_start = match.end()
+            if para_start < len(text) and para_start not in paragraph_boundaries:
+                paragraph_boundaries.append(para_start)
         
         chunks = splitter.split_text(text)
         # Recompute spans within page text

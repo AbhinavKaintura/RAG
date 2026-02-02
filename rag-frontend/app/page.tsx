@@ -9,16 +9,12 @@ export default function DisclaimerPage() {
   const router = useRouter()
   const [accepted, setAccepted] = useState(false)
 
-  useEffect(() => {
-    // Check if user already accepted
-    const hasAccepted = localStorage.getItem('disclaimer-accepted')
-    if (hasAccepted === 'true') {
-      router.push('/chat')
-    }
-  }, [router])
+  // Removed auto-redirect - user must accept disclaimer every time
+  // useEffect removed so localStorage check doesn't auto-forward
 
   const handleAccept = () => {
-    localStorage.setItem('disclaimer-accepted', 'true')
+    // Store acceptance for current session only
+    sessionStorage.setItem('disclaimer-accepted', 'true')
     setAccepted(true)
     setTimeout(() => {
       router.push('/chat')
