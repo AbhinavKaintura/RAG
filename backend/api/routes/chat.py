@@ -28,8 +28,14 @@ def get_vectorstore():
         raise HTTPException(500, f"Vector store not initialized: {str(e)}")
 
 
-@router.post("/stream")
-async def stream_chat(request: ChatRequest, vs = Depends(get_vectorstore)):
+@router.get("/stream")
+async def stream_chat(
+    query: str,
+    llm_model: str = None,
+    temperature: float = None,
+    top_k: int = None,
+    vs = Depends(get_vectorstore)
+):
     """
     Streaming chat endpoint using Server-Sent Events (SSE)
     
@@ -37,9 +43,9 @@ async def stream_chat(request: ChatRequest, vs = Depends(get_vectorstore)):
     """
     
     # Use request-level overrides or fall back to config
-    llm_model = request.llm_model or config.llm_model
-    temperature = request.temperature if request.temperature is not None else config.temperature
-    top_k = request.top_k or config.top_k
+    llm_model = llm_model or config.llm_model
+    temperature = temperature if temperature is not None else config.temperature
+    top_k = top_k or config.top_k
     
     # Validate model
     if not config.validate_llm_model(llm_model):
@@ -55,7 +61,7 @@ async def stream_chat(request: ChatRequest, vs = Depends(get_vectorstore)):
         """Generate SSE events..."""
         try:
             # Get retrieved documents first
-            raw_docs = retriever.invoke(request.query)
+            raw_docs = retriever.invoke(query)
             citations = postprocess_citations(raw_docs)
             
             # Send citations first
@@ -66,7 +72,7 @@ async def stream_chat(request: ChatRequest, vs = Depends(get_vectorstore)):
             
             # Stream answer tokens
             full_answer = ""
-            for chunk in rag_chain.stream({"input": request.query}):
+            for chunk in rag_chain.stream({"input": query}):
                 if isinstance(chunk, dict) and "answer" in chunk:
                     token = chunk["answer"]
                 elif isinstance(chunk, str):
